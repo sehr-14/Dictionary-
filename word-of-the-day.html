@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word of the Day</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1209;
+    --cream: #f5f0e8;
+    --gold: #c8a84b;
+    --gold-light: #e8d49a;
+    --rust: #8b3a1e;
+    --paper: #ede8dc;
+    --shadow: rgba(26, 18, 9, 0.15);
+  }
+
+  body {
+    background-color: var(--cream);
+    background-image:
+      radial-gradient(ellipse at 20% 80%, rgba(200, 168, 75, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(139, 58, 30, 0.05) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Crimson Pro', Georgia, serif;
+    padding: 2rem;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 680px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .masthead {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  .masthead::before, .masthead::after {
+    content: '';
+    display: block;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 0.75rem 0;
+  }
+
+  .label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .date-line {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--ink);
+    opacity: 0.5;
+    margin-top: 0.25rem;
+    letter-spacing: 0.05em;
+  }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid rgba(200, 168, 75, 0.3);
+    padding: 3rem 3.5rem;
+    position: relative;
+    box-shadow:
+      0 2px 4px var(--shadow),
+      0 8px 32px var(--shadow),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(200, 168, 75, 0.15);
+    pointer-events: none;
+  }
+
+  /* Corner ornaments */
+  .card::after {
+    content: '❧';
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    color: var(--gold);
+    opacity: 0.4;
+    font-size: 1.1rem;
+  }
+
+  .corner-tl {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    color: var(--gold);
+    opacity: 0.4;
+    font-size: 1.1rem;
+    transform: scaleX(-1);
+  }
+
+  /* Word section */
+  .word-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    min-height: 80px;
+  }
+
+  .word {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 3.8rem;
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    transition: opacity 0.3s ease;
+  }
+
+  .phonetic {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--gold);
+    margin-top: 0.35rem;
+    letter-spacing: 0.05em;
+  }
+
+  .part-of-speech {
+    display: inline-block;
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--rust);
+    margin-top: 0.5rem;
+    padding: 0.15rem 0.8rem;
+    border: 1px solid rgba(139, 58, 30, 0.25);
+    letter-spacing: 0.08em;
+  }
+
+  /* Divider */
+  .ornament-divider {
+    text-align: center;
+    color: var(--gold);
+    opacity: 0.5;
+    font-size: 1.2rem;
+    margin: 1.5rem 0;
+    letter-spacing: 0.5em;
+  }
+
+  /* Definition */
+  .definition-label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.6rem;
+  }
+
+  .definition {
+    font-size: 1.25rem;
+    line-height: 1.7;
+    color: var(--ink);
+    font-weight: 300;
+    min-height: 3rem;
+  }
+
+  .example {
+    font-style: italic;
+    color: var(--ink);
+    opacity: 0.65;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-top: 1rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--gold-light);
+    min-height: 2rem;
+  }
+
+  /* Etymology */
+  .etymology-box {
+    margin-top: 1.75rem;
+    padding: 1rem 1.25rem;
+    background: rgba(200, 168, 75, 0.07);
+    border: 1px solid rgba(200, 168, 75, 0.2);
+  }
+
+  .etymology-label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+  }
+
+  .etymology-text {
+    font-size: 1rem;
+    color: var(--ink);
+    opacity: 0.7;
+    line-height: 1.5;
+    min-height: 1.5rem;
+  }
+
+  /* Button */
+  .btn-row {
+    text-align: center;
+    margin-top: 2.5rem;
+  }
+
+  button {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--ink);
+    border: none;
+    padding: 0.85rem 2.5rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s ease;
+  }
+
+  button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.35s ease;
+    z-index: 0;
+  }
+
+  button:hover::after { transform: translateX(0); }
+  button span { position: relative; z-index: 1; }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  button:disabled::after { display: none; }
+
+  /* Loading dots */
+  .dots span {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: bounce 1.2s infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  .fade-in { animation: textFade 0.5s ease both; }
+  @keyframes textFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 540px) {
+    .card { padding: 2rem 1.75rem; }
+    .word { font-size: 2.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="masthead">
+    <div class="label">✦ The Daily Lexicon ✦</div>
+    <div class="date-line" id="dateDisplay"></div>
+  </div>
+
+  <div class="card">
+    <span class="corner-tl">❧</span>
+
+    <div class="word-section">
+      <div class="word" id="wordEl">—</div>
+      <div class="phonetic" id="phoneticEl"></div>
+      <div id="posEl"></div>
+    </div>
+
+    <div class="ornament-divider">· · ·</div>
+
+    <div class="definition-label">Definition</div>
+    <div class="definition" id="definitionEl">
+      <span class="dots"><span></span><span></span><span></span></span>
+    </div>
+    <div class="example" id="exampleEl"></div>
+
+    <div class="etymology-box">
+      <div class="etymology-label">Etymology</div>
+      <div class="etymology-text" id="etymologyEl"></div>
+    </div>
+
+    <div class="btn-row">
+      <button id="newWordBtn" onclick="fetchWord()">
+        <span>New Word</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Set date
+  const now = new Date();
+  document.getElementById('dateDisplay').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  const usedWords = [];
+
+  async function fetchWord() {
+    const btn = document.getElementById('newWordBtn');
+    btn.disabled = true;
+
+    // Reset UI
+    set('wordEl', '<span style="opacity:0.3">—</span>');
+    set('phoneticEl', '');
+    set('posEl', '');
+    set('definitionEl', '<span class="dots"><span></span><span></span><span></span></span>');
+    set('exampleEl', '');
+    set('etymologyEl', '');
+
+    const avoidList = usedWords.length ? `Avoid these recent words: ${usedWords.slice(-5).join(', ')}.` : '';
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: `Choose a single interesting, beautiful, or unusual English word — preferably obscure but real — for a "Word of the Day" feature. ${avoidList}
+
+Return ONLY valid JSON (no markdown, no backticks) in this exact structure:
+{
+  "word": "...",
+  "phonetic": "...",
+  "partOfSpeech": "...",
+  "definition": "...",
+  "example": "...",
+  "etymology": "..."
+}
+
+Make the definition clear and elegant. The example sentence should be literary and evocative. The etymology should be brief (1-2 sentences).`
+          }]
+        })
+      });
+
+      const data = await res.json();
+      const text = data.content?.[0]?.text || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      const word = JSON.parse(clean);
+
+      usedWords.push(word.word);
+
+      // Animate in
+      set('wordEl', word.word, true);
+      set('phoneticEl', word.phonetic || '');
+      if (word.partOfSpeech) {
+        document.getElementById('posEl').innerHTML = `<span class="part-of-speech">${word.partOfSpeech}</span>`;
+      }
+      set('definitionEl', word.definition, true);
+      set('exampleEl', word.example ? `"${word.example}"` : '', true);
+      set('etymologyEl', word.etymology || '', true);
+
+    } catch (err) {
+      set('wordEl', 'Error');
+      set('definitionEl', 'Could not fetch word. Please try again.');
+      console.error(err);
+    }
+
+    btn.disabled = false;
+  }
+
+  function set(id, html, animate = false) {
+    const el = document.getElementById(id);
+    el.innerHTML = html;
+    if (animate) {
+      el.classList.remove('fade-in');
+      void el.offsetWidth;
+      el.classList.add('fade-in');
+    }
+  }
+
+  // Load on start
+  fetchWord();
+</script>
+</body>
+</html>
